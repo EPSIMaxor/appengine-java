@@ -11,7 +11,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.zenika.zencontact.domain.PhotoService;
+import com.zenika.zencontact.domain.blob.PhotoService;
 
 // With @WebServlet annotation the webapp/WEB-INF/web.xml is no longer required.
 @WebServlet(name = "UserResourceWithId", value = "/api/v0/users/*")
