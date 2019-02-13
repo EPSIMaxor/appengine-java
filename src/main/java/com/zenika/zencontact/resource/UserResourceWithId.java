@@ -5,6 +5,7 @@ import com.zenika.zencontact.persistence.UserRepository;
 import com.zenika.zencontact.persistence.objectify.UserDaoObjectify;
 import com.google.gson.Gson;
 import com.google.common.base.Predicate;
+import com.google.appengine.api.memcache.*;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
@@ -16,6 +17,8 @@ import com.zenika.zencontact.domain.blob.PhotoService;
 // With @WebServlet annotation the webapp/WEB-INF/web.xml is no longer required.
 @WebServlet(name = "UserResourceWithId", value = "/api/v0/users/*")
 public class UserResourceWithId extends HttpServlet {
+
+  private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
 
   private Long getId(HttpServletRequest request) {
     String pathInfo = request.getPathInfo(); // /{id}
@@ -36,6 +39,7 @@ public class UserResourceWithId extends HttpServlet {
     }
     User user = UserDaoObjectify.getInstance().get(id);
     PhotoService.getInstance().prepareUploadURL(user);
+    PhotoService.getInstance().prepareDownloadURL(user);
     response.setContentType("application/json; charset=utf-8");
     response.getWriter().println(new Gson().toJson(user));
   }
@@ -50,6 +54,7 @@ public class UserResourceWithId extends HttpServlet {
     }
     User user = new Gson().fromJson(request.getReader(), User.class);
     UserDaoObjectify.getInstance().save(user);
+    cache.delete(UserResource.CONTACTS_CACHE_KEY);
     response.setContentType("application/json; charset=utf-8");
     response.getWriter().println(new Gson().toJson(user));
   }
@@ -62,7 +67,7 @@ public class UserResourceWithId extends HttpServlet {
         response.setStatus(404);
         return;
     }
+    cache.delete(UserResource.CONTACTS_CACHE_KEY);
     UserDaoObjectify.getInstance().delete(id);
   }
 }
-
